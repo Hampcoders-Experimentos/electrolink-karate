@@ -1,22 +1,24 @@
 {
-  "comment": "Shared test payloads quoted verbatim from ELECTROLINK_API_ENDPOINTS.md. Loaded with: * def testData = read('classpath:common/test-data.json')",
+  "comment": "Shared test payloads aligned with ELECTROLINK_API_ENDPOINTS.md v2.0 (real DTO shapes from src/main/java/com/hampcoders/electrolink/**/interfaces/rest/**). Loaded with: * def testData = read('classpath:common/test-data.json')",
 
   "signUp": {
-    "email": "newuser@example.com",
+    "username": "newuser@example.com",
     "password": "password123",
-    "firstName": "Jane",
-    "lastName": "Smith"
+    "roles": ["ROLE_HOMEOWNER"]
   },
 
   "newComponent": {
-    "name": "New Breaker",
+    "name": "Circuit Breaker 32A",
+    "description": "High capacity circuit breaker",
     "componentTypeId": 1,
-    "description": "High capacity breaker"
+    "isActive": true
   },
 
   "updateComponent": {
     "name": "Updated Breaker",
-    "description": "Updated description"
+    "description": "Updated description",
+    "componentTypeId": 1,
+    "isActive": true
   },
 
   "newComponentType": {
@@ -24,19 +26,43 @@
     "description": "Hydraulic components"
   },
 
+  "sampleAddress": {
+    "street": "Av. Javier Prado",
+    "number": "1234",
+    "city": "Lima",
+    "postalCode": "15036",
+    "country": "PE",
+    "latitude": -12.0464,
+    "longitude": -77.0428
+  },
+
   "newProperty": {
-    "address": "456 Oak Ave",
-    "city": "Los Angeles",
-    "state": "CA",
-    "zipCode": "90001",
-    "ownerId": 1
+    "ownerId": "550e8400-e29b-41d4-a716-446655440000",
+    "address": {
+      "street": "Av. Javier Prado",
+      "number": "1234",
+      "city": "Lima",
+      "postalCode": "15036",
+      "country": "PE",
+      "latitude": -12.0464,
+      "longitude": -77.0428
+    },
+    "region": "Lima",
+    "district": "San Isidro"
   },
 
   "updateProperty": {
-    "address": "789 Elm St",
-    "city": "Chicago",
-    "state": "IL",
-    "zipCode": "60601"
+    "address": {
+      "street": "Av. La Marina",
+      "number": "5678",
+      "city": "Lima",
+      "postalCode": "15084",
+      "country": "PE",
+      "latitude": -12.0876,
+      "longitude": -77.0917
+    },
+    "region": "Lima",
+    "district": "San Miguel"
   },
 
   "newStock": {
@@ -46,111 +72,168 @@
   },
 
   "updateStock": {
-    "quantity": 20,
-    "alertThreshold": 10
+    "newQuantity": 20,
+    "newAlertThreshold": 10
   },
 
   "newProfile": {
     "firstName": "John",
     "lastName": "Doe",
     "email": "john.doe@example.com",
-    "phoneNumber": "+1234567890",
-    "role": "TECHNICIAN"
+    "street": "Av. Universitaria 1801",
+    "role": "TECHNICIAN",
+    "additionalInfoOrCertification": "10 years of electrical experience"
   },
 
   "updateProfile": {
     "firstName": "Jane",
     "lastName": "Smith",
-    "phoneNumber": "+0987654321"
+    "email": "jane.smith@example.com",
+    "street": "Av. Arequipa 4567",
+    "role": "TECHNICIAN",
+    "additionalInfoOrCertification": "Updated certification details",
+    "isVerified": true
   },
 
   "newRequest": {
     "clientId": "CLIENT001",
-    "description": "Electrical inspection needed",
+    "technicianId": "TECH001",
     "propertyId": "550e8400-e29b-41d4-a716-446655440000",
-    "preferredDate": "2024-02-15T10:00:00Z",
-    "priority": "HIGH"
+    "serviceId": "SVC001",
+    "problemDescription": "Electrical inspection needed",
+    "scheduledDate": "2026-06-15",
+    "bill": {
+      "billingPeriod": "2026-05",
+      "energyConsumed": 240.5,
+      "amountPaid": 89.90,
+      "billImageUrl": "https://example.com/bills/may.jpg"
+    },
+    "photos": [
+      { "photoId": "p1", "url": "https://example.com/photos/p1.jpg" }
+    ],
+    "isPriority": false
   },
 
   "updateRequest": {
-    "description": "Updated description",
-    "priority": "MEDIUM"
+    "clientId": "CLIENT001",
+    "technicianId": "TECH002",
+    "propertyId": "550e8400-e29b-41d4-a716-446655440000",
+    "serviceId": "SVC001",
+    "problemDescription": "Updated description with more detail",
+    "scheduledDate": "2026-06-20",
+    "bill": {
+      "billingPeriod": "2026-05",
+      "energyConsumed": 250.0,
+      "amountPaid": 95.00,
+      "billImageUrl": "https://example.com/bills/may2.jpg"
+    },
+    "photos": [],
+    "isPriority": true
   },
 
   "newService": {
-    "name": "New Service",
-    "description": "Service description",
-    "price": 200.00,
-    "duration": 90
+    "name": "Electrical Inspection",
+    "description": "Complete electrical system inspection",
+    "basePrice": 150.00,
+    "estimatedTime": "2h",
+    "category": "INSPECTION",
+    "isVisible": true,
+    "createdBy": "admin",
+    "policy": {
+      "cancellationPolicy": "Free cancellation up to 24 hours before",
+      "termsAndConditions": "Standard service terms apply"
+    },
+    "restriction": {
+      "unavailableDistricts": [],
+      "forbiddenDays": ["SUNDAY"],
+      "requiresSpecialCertification": false
+    },
+    "tags": [{ "name": "inspection" }],
+    "components": []
   },
 
   "updateService": {
-    "name": "Updated Service",
-    "price": 250.00
+    "name": "Electrical Inspection Plus",
+    "description": "Extended inspection with extra coverage",
+    "basePrice": 200.00,
+    "estimatedTime": "3h",
+    "category": "INSPECTION",
+    "isVisible": true,
+    "createdBy": "admin",
+    "policy": {
+      "cancellationPolicy": "Same as before",
+      "termsAndConditions": "Standard service terms apply"
+    },
+    "restriction": {
+      "unavailableDistricts": [],
+      "forbiddenDays": [],
+      "requiresSpecialCertification": false
+    },
+    "tags": [{ "name": "inspection" }, { "name": "premium" }],
+    "components": []
   },
 
   "newSchedule": {
     "technicianId": "TECH001",
-    "scheduleDate": "2024-02-15T10:00:00Z",
-    "requestIds": [1, 2, 3]
+    "day": "MONDAY",
+    "startTime": "08:00",
+    "endTime": "17:00"
   },
 
   "updateSchedule": {
-    "scheduleDate": "2024-02-16T14:00:00Z",
-    "status": "COMPLETED"
+    "technicianId": "TECH001",
+    "day": "TUESDAY",
+    "startTime": "09:00",
+    "endTime": "18:00"
   },
 
   "newRating": {
+    "requestId": 1,
     "score": 5,
     "comment": "Excellent service!",
-    "technicianId": 1,
-    "requestId": 1
+    "raterId": "CLIENT001",
+    "technicianId": 1
   },
 
   "updateRating": {
-    "id": 1,
+    "ratingId": 1,
     "score": 4,
     "comment": "Good service, but could be faster"
   },
 
   "newReport": {
     "serviceOperationId": 1,
-    "summary": "Inspection completed",
-    "findings": "All systems operational",
-    "recommendations": "Regular maintenance recommended"
+    "reportType": "INCIDENT",
+    "description": "Inspection completed with minor findings"
   },
 
   "newPhoto": {
     "reportId": 1,
-    "photoUrl": "https://example.com/photos/photo1.jpg"
+    "photoData": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=",
+    "fileName": "photo.jpg",
+    "contentType": "image/jpeg"
   },
 
   "newServiceOperation": {
-    "technicianId": 1,
-    "serviceId": 1,
-    "startTime": "2024-02-15T10:00:00Z",
-    "estimatedDuration": 120
+    "requestId": 1,
+    "technicianId": 1
   },
 
   "updateServiceOperationStatus": {
     "serviceOperationId": 1,
-    "status": "COMPLETED",
-    "endTime": "2024-02-15T12:00:00Z"
+    "newStatus": "COMPLETED"
   },
 
   "newSubscription": {
     "userId": 1,
-    "planId": 1,
-    "startDate": "2024-02-01",
-    "paymentMethodId": "pm_123456"
+    "planId": 1
   },
 
   "newPlan": {
-    "name": "Enterprise",
-    "description": "Enterprise subscription plan",
-    "price": 299.99,
-    "currency": "USD",
-    "billingCycle": "MONTHLY",
-    "features": ["Feature 1", "Feature 2", "Feature 3", "Feature 4", "Feature 5"]
+    "name": "PREMIUM",
+    "description": "Premium subscription plan with priority support",
+    "price": 79.99,
+    "maxRequestsPerMonth": 50,
+    "prioritySupport": true
   }
 }

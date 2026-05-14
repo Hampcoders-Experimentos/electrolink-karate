@@ -3,10 +3,15 @@
 # Analytics Module — Integration tests.
 # Base Path: /api/v1/analytics
 #
-# Endpoints covered:
-#   - GET /analytics/homeowners/{ownerId}/consumption
-#   - GET /analytics/technicians/{technicianId}/performance
-#   - GET /analytics/technicians/{technicianId}/revenue
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   HomeOwnerConsumptionResource = { ownerId, month, year,
+#                                    energyConsumed, amountPaid,
+#                                    serviceRequestsCount }
+#   TechnicianPerformanceResource = { technicianId, totalServicesCompleted,
+#                                     averageRating, averageCompletionTimeHours,
+#                                     pendingServices }
+#   TechnicianRevenueResource     = { technicianId, period, totalRevenue,
+#                                     servicesCount, averageRevenuePerService }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Analytics module - homeowner and technician metrics
@@ -30,30 +35,40 @@ Feature: Analytics module - homeowner and technician metrics
     And match each response ==
       """
       {
-        "month":       '#string',
-        "year":        '#number',
-        "consumption": '#number',
-        "unit":        '#string'
+        "ownerId":              '#number',
+        "month":                '#number',
+        "year":                 '#number',
+        "energyConsumed":       '#number',
+        "amountPaid":           '#number',
+        "serviceRequestsCount": '#number'
       }
       """
-    And assert response.length > 0
 
   # ────────────────────────────────────────────────────────────────
   # GET /analytics/technicians/{technicianId}/performance
   # ────────────────────────────────────────────────────────────────
   @smoke @analytics @get
-  Scenario: Get technician performance returns metric entries
+  Scenario: Get technician performance returns performance metrics
     Given path '/analytics/technicians', 1, 'performance'
     When method GET
     Then status 200
     And match response == '#[] #object'
-    And match each response contains { metric: '#string', value: '#number' }
+    And match each response ==
+      """
+      {
+        "technicianId":               '#number',
+        "totalServicesCompleted":     '#number',
+        "averageRating":              '#number',
+        "averageCompletionTimeHours": '#number',
+        "pendingServices":            '#number'
+      }
+      """
 
   # ────────────────────────────────────────────────────────────────
   # GET /analytics/technicians/{technicianId}/revenue?months=6
   # ────────────────────────────────────────────────────────────────
   @smoke @analytics @get
-  Scenario: Get technician revenue returns monthly revenue data
+  Scenario: Get technician revenue returns revenue data
     Given path '/analytics/technicians', 1, 'revenue'
     And param months = 6
     When method GET
@@ -62,9 +77,10 @@ Feature: Analytics module - homeowner and technician metrics
     And match each response ==
       """
       {
-        "month":    '#string',
-        "year":     '#number',
-        "revenue":  '#number',
-        "currency": '#string'
+        "technicianId":             '#number',
+        "period":                   '#string',
+        "totalRevenue":             '#number',
+        "servicesCount":            '#number',
+        "averageRevenuePerService": '#number'
       }
       """

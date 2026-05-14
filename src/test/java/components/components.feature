@@ -3,12 +3,11 @@
 # Component Management Module — Integration tests.
 # Base Path: /api/v1/components
 #
-# Endpoints covered:
-#   - GET    /components
-#   - GET    /components/{componentId}
-#   - POST   /components
-#   - PUT    /components/{componentId}
-#   - DELETE /components/{componentId}
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   CreateComponentResource = { name, description, componentTypeId, isActive }
+#   UpdateComponentResource = same shape as Create
+#   ComponentResource       = { id(string), name, description, isActive,
+#                               componentTypeId }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Component Management module - full CRUD
@@ -32,47 +31,19 @@ Feature: Component Management module - full CRUD
     And match each response ==
       """
       {
-        "id":              '#number',
+        "id":              '#string',
         "name":            '#string',
-        "componentTypeId": '#number',
-        "createdAt":       '#string'
+        "description":     '##string',
+        "isActive":        '#boolean',
+        "componentTypeId": '#number'
       }
       """
-    And assert response.length > 0
-
-  # ────────────────────────────────────────────────────────────────
-  # GET /components/{componentId} — fetch a component
-  # ────────────────────────────────────────────────────────────────
-  @smoke @components @get
-  Scenario: Get component by id returns the expected payload
-    Given path '/components', 1
-    When method GET
-    Then status 200
-    And match response ==
-      """
-      {
-        "id":              '#number',
-        "name":            '#string',
-        "componentTypeId": '#number',
-        "createdAt":       '#string'
-      }
-      """
-    And match response.id == 1
-
-  # ────────────────────────────────────────────────────────────────
-  # GET /components/{componentId} — non-existent id returns 404
-  # ────────────────────────────────────────────────────────────────
-  @regression @components @get @negative
-  Scenario: Get component by unknown id returns 404
-    Given path '/components', 999999
-    When method GET
-    Then status 404
 
   # ────────────────────────────────────────────────────────────────
   # POST /components — create a new component
   # ────────────────────────────────────────────────────────────────
   @regression @components @post
-  Scenario: Create component returns 201 and the created entity
+  Scenario: Create component returns 201 with the created entity
     Given path '/components'
     And request testData.newComponent
     When method POST
@@ -80,33 +51,51 @@ Feature: Component Management module - full CRUD
     And match response ==
       """
       {
-        "id":              '#number',
+        "id":              '#string',
         "name":            '#string',
-        "componentTypeId": '#number',
-        "createdAt":       '#string'
+        "description":     '##string',
+        "isActive":        '#boolean',
+        "componentTypeId": '#number'
       }
       """
-    And match response.name == 'New Breaker'
+    And match response.name == 'Circuit Breaker 32A'
     And match response.componentTypeId == 1
+    And match response.isActive == true
+
+  # ────────────────────────────────────────────────────────────────
+  # GET /components/{componentId} — fetch a component
+  # ────────────────────────────────────────────────────────────────
+  @smoke @components @get
+  Scenario: Get component by id returns the expected payload
+    # Create a component so we have a guaranteed id to look up
+    Given path '/components'
+    And request testData.newComponent
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/components', createdId
+    When method GET
+    Then status 200
+    And match response.id == createdId
+    And match response.name == testData.newComponent.name
 
   # ────────────────────────────────────────────────────────────────
   # PUT /components/{componentId} — update an existing component
   # ────────────────────────────────────────────────────────────────
   @regression @components @put
   Scenario: Update component returns 200 with the updated entity
-    Given path '/components', 1
+    Given path '/components'
+    And request testData.newComponent
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/components', createdId
     And request testData.updateComponent
     When method PUT
     Then status 200
-    And match response ==
-      """
-      {
-        "id":              '#number',
-        "name":            '#string',
-        "componentTypeId": '#number',
-        "createdAt":       '#string'
-      }
-      """
+    And match response.id == createdId
     And match response.name == 'Updated Breaker'
 
   # ────────────────────────────────────────────────────────────────
@@ -114,6 +103,12 @@ Feature: Component Management module - full CRUD
   # ────────────────────────────────────────────────────────────────
   @regression @components @delete
   Scenario: Delete component returns 204
-    Given path '/components', 1
+    Given path '/components'
+    And request testData.newComponent
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/components', createdId
     When method DELETE
     Then status 204

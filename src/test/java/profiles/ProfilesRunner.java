@@ -1,7 +1,10 @@
 package profiles;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Profile Management module.
@@ -13,11 +16,16 @@ import org.junit.jupiter.api.Test;
 class ProfilesRunner {
 
     /**
-     * Runs every scenario inside the {@code profiles} package.
+     * Runs every scenario inside the {@code profiles} package and fails the
+     * build if any scenario errors.
      */
     @Test
     void testProfiles() {
-        Karate.run("profiles").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:profiles")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Profiles scenarios failed - see target/karate-reports/");
     }
 
 }

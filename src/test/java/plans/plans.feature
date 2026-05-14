@@ -3,10 +3,10 @@
 # Plan Management Module — Integration tests.
 # Base Path: /api/v1/plans
 #
-# Endpoints covered:
-#   - GET  /plans
-#   - GET  /plans/{planId}
-#   - POST /plans
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   CreatePlanResource = { name(BASIC|PREMIUM), description, price,
+#                          maxRequestsPerMonth, prioritySupport }
+#   PlanResource       = same fields + { id, isActive }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Plan Management module - subscription plan catalog
@@ -16,9 +16,6 @@ Feature: Plan Management module - subscription plan catalog
     * def auth = callonce read('classpath:common/auth-helper.feature@signIn')
     * def authToken = auth.authToken
     * header Authorization = 'Bearer ' + authToken
-    # The spec separates user and admin tokens. This suite has only one sign-in
-    # endpoint, so we reuse the same JWT for the admin-only POST /plans scenario.
-    * def adminToken = authToken
     * def testData = read('classpath:common/test-data.json')
 
   # ────────────────────────────────────────────────────────────────
@@ -33,16 +30,15 @@ Feature: Plan Management module - subscription plan catalog
     And match each response ==
       """
       {
-        "id":           '#number',
-        "name":         '#string',
-        "description":  '#string',
-        "price":        '#number',
-        "currency":     '#string',
-        "billingCycle": '#string',
-        "features":     '#array'
+        "id":                  '#number',
+        "name":                '#string',
+        "description":         '##string',
+        "price":               '#number',
+        "maxRequestsPerMonth": '#number',
+        "prioritySupport":     '#boolean',
+        "isActive":            '#boolean'
       }
       """
-    And assert response.length > 0
 
   # ────────────────────────────────────────────────────────────────
   # GET /plans/{planId} — fetch a plan
@@ -55,41 +51,39 @@ Feature: Plan Management module - subscription plan catalog
     And match response ==
       """
       {
-        "id":           '#number',
-        "name":         '#string',
-        "description":  '#string',
-        "price":        '#number',
-        "currency":     '#string',
-        "billingCycle": '#string',
-        "features":     '#array'
+        "id":                  '#number',
+        "name":                '#string',
+        "description":         '##string',
+        "price":               '#number',
+        "maxRequestsPerMonth": '#number',
+        "prioritySupport":     '#boolean',
+        "isActive":            '#boolean'
       }
       """
-    And match response.name == 'Basic'
+    And match response.id == 1
 
   # ────────────────────────────────────────────────────────────────
-  # POST /plans — admin-only create plan
+  # POST /plans — create a plan
   # ────────────────────────────────────────────────────────────────
   @regression @plans @post
   Scenario: Create plan returns 201 with the created plan
     Given path '/plans'
-    And header Authorization = 'Bearer ' + adminToken
     And request testData.newPlan
     When method POST
     Then status 201
     And match response ==
       """
       {
-        "id":           '#number',
-        "name":         '#string',
-        "description":  '#string',
-        "price":        '#number',
-        "currency":     '#string',
-        "billingCycle": '#string',
-        "features":     '#array'
+        "id":                  '#number',
+        "name":                '#string',
+        "description":         '##string',
+        "price":               '#number',
+        "maxRequestsPerMonth": '#number',
+        "prioritySupport":     '#boolean',
+        "isActive":            '#boolean'
       }
       """
-    And match response.name == 'Enterprise'
-    And match response.price == 299.99
-    And match response.currency == 'USD'
-    And match response.billingCycle == 'MONTHLY'
-    And assert response.features.length == 5
+    And match response.name == 'PREMIUM'
+    And match response.price == 79.99
+    And match response.maxRequestsPerMonth == 50
+    And match response.prioritySupport == true

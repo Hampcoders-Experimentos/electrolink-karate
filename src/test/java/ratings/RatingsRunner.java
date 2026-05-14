@@ -1,7 +1,10 @@
 package ratings;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Monitoring Ratings module.
@@ -12,11 +15,16 @@ import org.junit.jupiter.api.Test;
 class RatingsRunner {
 
     /**
-     * Runs every scenario inside the {@code ratings} package.
+     * Runs every scenario inside the {@code ratings} package and fails
+     * the build if any scenario errors.
      */
     @Test
     void testRatings() {
-        Karate.run("ratings").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:ratings")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Ratings scenarios failed - see target/karate-reports/");
     }
 
 }

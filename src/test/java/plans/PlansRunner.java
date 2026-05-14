@@ -1,7 +1,10 @@
 package plans;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Plan Management module.
@@ -13,11 +16,16 @@ import org.junit.jupiter.api.Test;
 class PlansRunner {
 
     /**
-     * Runs every scenario inside the {@code plans} package.
+     * Runs every scenario inside the {@code plans} package and fails
+     * the build if any scenario errors.
      */
     @Test
     void testPlans() {
-        Karate.run("plans").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:plans")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Plans scenarios failed - see target/karate-reports/");
     }
 
 }

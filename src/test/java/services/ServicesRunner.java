@@ -1,7 +1,10 @@
 package services;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Service Delivery Platform (SDP) Services module.
@@ -12,11 +15,16 @@ import org.junit.jupiter.api.Test;
 class ServicesRunner {
 
     /**
-     * Runs every scenario inside the {@code services} package.
+     * Runs every scenario inside the {@code services} package and fails
+     * the build if any scenario errors.
      */
     @Test
     void testServices() {
-        Karate.run("services").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:services")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Services scenarios failed - see target/karate-reports/");
     }
 
 }

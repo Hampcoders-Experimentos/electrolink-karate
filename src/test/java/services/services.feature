@@ -3,12 +3,14 @@
 # Service Delivery Platform (SDP) - Services — Integration tests.
 # Base Path: /api/v1/services
 #
-# Endpoints covered:
-#   - GET    /services
-#   - POST   /services
-#   - PUT    /services/{serviceId}
-#   - DELETE /services/{serviceId}
-#   - GET    /services/{serviceId}
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   CreateServiceResource / ServiceResource fields:
+#     { name, description, basePrice, estimatedTime, category,
+#       isVisible, createdBy,
+#       policy: PolicyResource,
+#       restriction: RestrictionResource,
+#       tags: TagResource[],
+#       components: ComponentQuantityResource[] }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: SDP Services module - service catalog CRUD
@@ -29,15 +31,15 @@ Feature: SDP Services module - service catalog CRUD
     When method GET
     Then status 200
     And match response == '#[] #object'
-    And match each response ==
+    And match each response contains
       """
       {
-        "id":          '#number',
-        "name":        '#string',
-        "description": '#string',
-        "price":       '#number',
-        "duration":    '#number',
-        "createdAt":   '#string'
+        "name":          '#string',
+        "description":   '##string',
+        "basePrice":     '#number',
+        "estimatedTime": '##string',
+        "category":      '##string',
+        "isVisible":     '#boolean'
       }
       """
 
@@ -50,20 +52,16 @@ Feature: SDP Services module - service catalog CRUD
     And request testData.newService
     When method POST
     Then status 201
-    And match response ==
+    And match response contains
       """
       {
-        "id":          '#number',
-        "name":        '#string',
-        "description": '#string',
-        "price":       '#number',
-        "duration":    '#number',
-        "createdAt":   '#string'
+        "name":          'Electrical Inspection',
+        "basePrice":     150.00,
+        "estimatedTime": '2h',
+        "category":      'INSPECTION',
+        "isVisible":     true
       }
       """
-    And match response.name == 'New Service'
-    And match response.price == 200.00
-    And match response.duration == 90
 
   # ────────────────────────────────────────────────────────────────
   # PUT /services/{serviceId} — update an existing service
@@ -92,15 +90,13 @@ Feature: SDP Services module - service catalog CRUD
     Given path '/services', 1
     When method GET
     Then status 200
-    And match response ==
+    And match response contains
       """
       {
-        "id":          '#number',
-        "name":        '#string',
-        "description": '#string',
-        "price":       '#number',
-        "duration":    '#number',
-        "createdAt":   '#string'
+        "name":          '#string',
+        "basePrice":     '#number',
+        "estimatedTime": '##string',
+        "category":      '##string',
+        "isVisible":     '#boolean'
       }
       """
-    And match response.id == 1

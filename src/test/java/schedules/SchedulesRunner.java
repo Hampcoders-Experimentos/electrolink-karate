@@ -1,7 +1,10 @@
 package schedules;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Service Delivery Platform (SDP) Schedules module.
@@ -13,11 +16,16 @@ import org.junit.jupiter.api.Test;
 class SchedulesRunner {
 
     /**
-     * Runs every scenario inside the {@code schedules} package.
+     * Runs every scenario inside the {@code schedules} package and fails
+     * the build if any scenario errors.
      */
     @Test
     void testSchedules() {
-        Karate.run("schedules").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:schedules")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Schedules scenarios failed - see target/karate-reports/");
     }
 
 }

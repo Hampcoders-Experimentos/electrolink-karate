@@ -35,9 +35,9 @@ function fn() {
         },
 
         // Seeded credentials used by common/auth-helper.feature@signIn.
-        // Values mirror the documented example in ELECTROLINK_API_ENDPOINTS.md.
+        // The real backend authenticates by `username`, not `email`.
         testUser: {
-            email: 'user@example.com',
+            username: 'user@example.com',
             password: 'password123'
         }
     };

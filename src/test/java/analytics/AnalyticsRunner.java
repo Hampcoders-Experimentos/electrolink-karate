@@ -1,7 +1,10 @@
 package analytics;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Analytics module.
@@ -12,11 +15,16 @@ import org.junit.jupiter.api.Test;
 class AnalyticsRunner {
 
     /**
-     * Runs every scenario inside the {@code analytics} package.
+     * Runs every scenario inside the {@code analytics} package and fails
+     * the build if any scenario errors.
      */
     @Test
     void testAnalytics() {
-        Karate.run("analytics").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:analytics")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Analytics scenarios failed - see target/karate-reports/");
     }
 
 }

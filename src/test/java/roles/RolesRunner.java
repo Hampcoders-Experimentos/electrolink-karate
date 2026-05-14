@@ -1,7 +1,10 @@
 package roles;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Role Management module.
@@ -12,11 +15,16 @@ import org.junit.jupiter.api.Test;
 class RolesRunner {
 
     /**
-     * Runs every scenario inside the {@code roles} package.
+     * Runs every scenario inside the {@code roles} package and fails the
+     * build if any scenario errors.
      */
     @Test
     void testRoles() {
-        Karate.run("roles").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:roles")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Roles scenarios failed - see target/karate-reports/");
     }
 
 }

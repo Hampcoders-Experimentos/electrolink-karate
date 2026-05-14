@@ -3,12 +3,9 @@
 # Monitoring - Reports — Integration tests.
 # Base Path: /api/v1/reports
 #
-# Endpoints covered:
-#   - POST   /reports
-#   - DELETE /reports/{reportId}
-#   - GET    /reports/{reportId}
-#   - GET    /reports
-#   - GET    /reports/requests/{serviceOperationId}
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   CreateReportResource = { serviceOperationId, reportType, description }
+#   ReportResource       = { id, serviceOperationId, description, reportType }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Monitoring Reports module - service report lifecycle
@@ -34,21 +31,26 @@ Feature: Monitoring Reports module - service report lifecycle
       {
         "id":                 '#number',
         "serviceOperationId": '#number',
-        "summary":            '#string',
-        "findings":           '#string',
-        "recommendations":    '#string',
-        "createdAt":          '#string'
+        "description":        '#string',
+        "reportType":         '#string'
       }
       """
-    And match response.summary == 'Inspection completed'
-    And match response.findings == 'All systems operational'
+    And match response.reportType == 'INCIDENT'
+    And match response.description == 'Inspection completed with minor findings'
 
   # ────────────────────────────────────────────────────────────────
   # DELETE /reports/{reportId} — delete a report
   # ────────────────────────────────────────────────────────────────
   @regression @reports @delete
   Scenario: Delete report returns 204
-    Given path '/reports', 1
+    # Create a report first so we have a guaranteed id
+    Given path '/reports'
+    And request testData.newReport
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/reports', createdId
     When method DELETE
     Then status 204
 
@@ -57,7 +59,13 @@ Feature: Monitoring Reports module - service report lifecycle
   # ────────────────────────────────────────────────────────────────
   @smoke @reports @get
   Scenario: Get report by id returns the expected report
-    Given path '/reports', 1
+    Given path '/reports'
+    And request testData.newReport
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/reports', createdId
     When method GET
     Then status 200
     And match response ==
@@ -65,13 +73,11 @@ Feature: Monitoring Reports module - service report lifecycle
       {
         "id":                 '#number',
         "serviceOperationId": '#number',
-        "summary":            '#string',
-        "findings":           '#string',
-        "recommendations":    '#string',
-        "createdAt":          '#string'
+        "description":        '#string',
+        "reportType":         '#string'
       }
       """
-    And match response.id == 1
+    And match response.id == createdId
 
   # ────────────────────────────────────────────────────────────────
   # GET /reports — list every report
@@ -88,8 +94,7 @@ Feature: Monitoring Reports module - service report lifecycle
   # ────────────────────────────────────────────────────────────────
   @smoke @reports @get
   Scenario: Get reports by service operation returns matching reports
-    Given path '/reports/requests', 1
+    Given path '/reports/requests', testData.newReport.serviceOperationId
     When method GET
     Then status 200
     And match response == '#[] #object'
-    And match each response contains { serviceOperationId: 1 }

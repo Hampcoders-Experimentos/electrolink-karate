@@ -1,7 +1,10 @@
 package componenttypes;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Component Type Management module.
@@ -13,11 +16,16 @@ import org.junit.jupiter.api.Test;
 class ComponentTypesRunner {
 
     /**
-     * Runs every scenario inside the {@code componenttypes} package.
+     * Runs every scenario inside the {@code componenttypes} package and
+     * fails the build if any scenario errors.
      */
     @Test
     void testComponentTypes() {
-        Karate.run("componenttypes").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:componenttypes")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "ComponentTypes scenarios failed - see target/karate-reports/");
     }
 
 }

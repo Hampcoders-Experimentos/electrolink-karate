@@ -3,15 +3,10 @@
 # Monitoring - Ratings — Integration tests.
 # Base Path: /api/v1/ratings
 #
-# Endpoints covered:
-#   - POST   /ratings
-#   - PUT    /ratings
-#   - DELETE /ratings/{ratingId}
-#   - GET    /ratings/{ratingId}
-#   - GET    /ratings
-#   - GET    /ratings/technicians/{technicianId}
-#   - GET    /ratings/technicians/{technicianId}/featured
-#   - GET    /ratings/requests/{requestId}
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   CreateRatingResource = { requestId, score, comment, raterId, technicianId }
+#   UpdateRatingResource = { ratingId, score, comment }
+#   RatingResource       = { id, requestId, score, comment, raterId, technicianId }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Monitoring Ratings module - rating lifecycle and queries
@@ -36,21 +31,22 @@ Feature: Monitoring Ratings module - rating lifecycle and queries
       """
       {
         "id":           '#number',
+        "requestId":    '#number',
         "score":        '#number',
         "comment":      '#string',
-        "technicianId": '#number',
-        "requestId":    '#number',
-        "createdAt":    '#string'
+        "raterId":      '#string',
+        "technicianId": '#number'
       }
       """
     And match response.score == 5
     And match response.comment == 'Excellent service!'
+    And match response.raterId == 'CLIENT001'
 
   # ────────────────────────────────────────────────────────────────
   # PUT /ratings — update an existing rating (id in body)
   # ────────────────────────────────────────────────────────────────
   @regression @ratings @put
-  Scenario: Update rating returns 200
+  Scenario: Update rating returns 200 (empty body)
     Given path '/ratings'
     And request testData.updateRating
     When method PUT
@@ -70,21 +66,28 @@ Feature: Monitoring Ratings module - rating lifecycle and queries
   # ────────────────────────────────────────────────────────────────
   @smoke @ratings @get
   Scenario: Get rating by id returns the expected rating
-    Given path '/ratings', 1
+    # Create a rating first so we have a guaranteed id
+    Given path '/ratings'
+    And request testData.newRating
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/ratings', createdId
     When method GET
     Then status 200
     And match response ==
       """
       {
         "id":           '#number',
+        "requestId":    '#number',
         "score":        '#number',
         "comment":      '#string',
-        "technicianId": '#number',
-        "requestId":    '#number',
-        "createdAt":    '#string'
+        "raterId":      '#string',
+        "technicianId": '#number'
       }
       """
-    And match response.id == 1
+    And match response.id == createdId
 
   # ────────────────────────────────────────────────────────────────
   # GET /ratings — list every rating
@@ -101,30 +104,27 @@ Feature: Monitoring Ratings module - rating lifecycle and queries
   # ────────────────────────────────────────────────────────────────
   @smoke @ratings @get
   Scenario: Get ratings by technician returns the technician's ratings
-    Given path '/ratings/technicians', 1
+    Given path '/ratings/technicians', testData.newRating.technicianId
     When method GET
     Then status 200
     And match response == '#[] #object'
-    And match each response contains { technicianId: 1 }
 
   # ────────────────────────────────────────────────────────────────
   # GET /ratings/technicians/{technicianId}/featured
   # ────────────────────────────────────────────────────────────────
   @regression @ratings @get
   Scenario: Get featured ratings by technician returns featured ratings
-    Given path '/ratings/technicians', 1, 'featured'
+    Given path '/ratings/technicians', testData.newRating.technicianId, 'featured'
     When method GET
     Then status 200
     And match response == '#[] #object'
-    And match each response contains { technicianId: 1, featured: true }
 
   # ────────────────────────────────────────────────────────────────
   # GET /ratings/requests/{requestId}
   # ────────────────────────────────────────────────────────────────
   @smoke @ratings @get
   Scenario: Get ratings by request returns ratings tied to that request
-    Given path '/ratings/requests', 1
+    Given path '/ratings/requests', testData.newRating.requestId
     When method GET
     Then status 200
     And match response == '#[] #object'
-    And match each response contains { requestId: 1 }

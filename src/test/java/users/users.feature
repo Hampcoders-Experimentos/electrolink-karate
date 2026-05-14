@@ -6,6 +6,10 @@
 # Endpoints covered:
 #   - GET /users
 #   - GET /users/{userId}
+#
+# Real API contract (verified against the running backend):
+#   • Each user is { id, username, roles } — no email, firstName,
+#     lastName or createdAt fields are returned.
 # ─────────────────────────────────────────────────────────────────
 
 Feature: User Management module - read endpoints
@@ -28,11 +32,9 @@ Feature: User Management module - read endpoints
     And match each response ==
       """
       {
-        "id":        '#number',
-        "email":     '#regex .+@.+',
-        "firstName": '#string',
-        "lastName":  '#string',
-        "createdAt": '#string'
+        "id":       '#number',
+        "username": '#string',
+        "roles":    '#array'
       }
       """
     And assert response.length > 0
@@ -48,15 +50,12 @@ Feature: User Management module - read endpoints
     And match response ==
       """
       {
-        "id":        '#number',
-        "email":     '#regex .+@.+',
-        "firstName": '#string',
-        "lastName":  '#string',
-        "createdAt": '#string'
+        "id":       '#number',
+        "username": '#string',
+        "roles":    '#array'
       }
       """
     And match response.id == 1
-    And match response.email == 'user@example.com'
 
   # ────────────────────────────────────────────────────────────────
   # GET /users/{userId} — non-existent id returns 404

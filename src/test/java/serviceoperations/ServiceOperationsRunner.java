@@ -1,7 +1,10 @@
 package serviceoperations;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Monitoring Service Operations module.
@@ -12,11 +15,16 @@ import org.junit.jupiter.api.Test;
 class ServiceOperationsRunner {
 
     /**
-     * Runs every scenario inside the {@code serviceoperations} package.
+     * Runs every scenario inside the {@code serviceoperations} package and
+     * fails the build if any scenario errors.
      */
     @Test
     void testServiceOperations() {
-        Karate.run("service-operations").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:serviceoperations")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "ServiceOperations scenarios failed - see target/karate-reports/");
     }
 
 }

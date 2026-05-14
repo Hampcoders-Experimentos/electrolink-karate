@@ -1,7 +1,10 @@
 package components;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Component Management module.
@@ -12,11 +15,16 @@ import org.junit.jupiter.api.Test;
 class ComponentsRunner {
 
     /**
-     * Runs every scenario inside the {@code components} package.
+     * Runs every scenario inside the {@code components} package and fails
+     * the build if any scenario errors.
      */
     @Test
     void testComponents() {
-        Karate.run("components").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:components")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Components scenarios failed - see target/karate-reports/");
     }
 
 }

@@ -1,7 +1,10 @@
 package reports;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Monitoring Reports module.
@@ -12,11 +15,16 @@ import org.junit.jupiter.api.Test;
 class ReportsRunner {
 
     /**
-     * Runs every scenario inside the {@code reports} package.
+     * Runs every scenario inside the {@code reports} package and fails
+     * the build if any scenario errors.
      */
     @Test
     void testReports() {
-        Karate.run("reports").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:reports")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Reports scenarios failed - see target/karate-reports/");
     }
 
 }

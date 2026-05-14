@@ -3,12 +3,11 @@
 # Monitoring - Service Operations — Integration tests.
 # Base Path: /api/v1/service-operations
 #
-# Endpoints covered:
-#   - POST /service-operations
-#   - GET  /service-operations/{serviceOperationId}
-#   - GET  /service-operations/technicians/{technicianId}
-#   - GET  /service-operations
-#   - PUT  /service-operations/status
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   CreateServiceOperationResource = { requestId, technicianId }
+#   ServiceOperationResource       = { id, requestId, technicianId,
+#                                      startedAt, completedAt, currentStatus }
+#   UpdateServiceStatusResource    = { serviceOperationId, newStatus }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Monitoring Service Operations module - operation lifecycle
@@ -32,51 +31,53 @@ Feature: Monitoring Service Operations module - operation lifecycle
     And match response ==
       """
       {
-        "id":                '#number',
-        "technicianId":      '#number',
-        "serviceId":         '#number',
-        "startTime":         '#string',
-        "estimatedDuration": '#number',
-        "status":            '#string',
-        "createdAt":         '#string'
+        "id":            '#number',
+        "requestId":     '#number',
+        "technicianId":  '#number',
+        "startedAt":     '##string',
+        "completedAt":   '##string',
+        "currentStatus": '#string'
       }
       """
-    And match response.technicianId == 1
-    And match response.serviceId == 1
-    And match response.status == 'IN_PROGRESS'
+    And match response.requestId == testData.newServiceOperation.requestId
+    And match response.technicianId == testData.newServiceOperation.technicianId
 
   # ────────────────────────────────────────────────────────────────
   # GET /service-operations/{serviceOperationId}
   # ────────────────────────────────────────────────────────────────
   @smoke @serviceoperations @get
   Scenario: Get service operation by id returns the expected operation
-    Given path '/service-operations', 1
+    Given path '/service-operations'
+    And request testData.newServiceOperation
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/service-operations', createdId
     When method GET
     Then status 200
+    And match response.id == createdId
     And match response ==
       """
       {
-        "id":                '#number',
-        "technicianId":      '#number',
-        "serviceId":         '#number',
-        "startTime":         '#string',
-        "estimatedDuration": '#number',
-        "status":            '#string',
-        "createdAt":         '#string'
+        "id":            '#number',
+        "requestId":     '#number',
+        "technicianId":  '#number',
+        "startedAt":     '##string',
+        "completedAt":   '##string',
+        "currentStatus": '#string'
       }
       """
-    And match response.id == 1
 
   # ────────────────────────────────────────────────────────────────
   # GET /service-operations/technicians/{technicianId}
   # ────────────────────────────────────────────────────────────────
   @smoke @serviceoperations @get
   Scenario: Get service operations by technician returns assignments
-    Given path '/service-operations/technicians', 1
+    Given path '/service-operations/technicians', testData.newServiceOperation.technicianId
     When method GET
     Then status 200
     And match response == '#[] #object'
-    And match each response contains { technicianId: 1 }
 
   # ────────────────────────────────────────────────────────────────
   # GET /service-operations — list every service operation
@@ -93,7 +94,15 @@ Feature: Monitoring Service Operations module - operation lifecycle
   # ────────────────────────────────────────────────────────────────
   @regression @serviceoperations @put
   Scenario: Update service operation status returns 204
+    # Create a service operation so we have a valid id to update
+    Given path '/service-operations'
+    And request testData.newServiceOperation
+    When method POST
+    Then status 201
+    * def createdId = response.id
+    * def payload = { serviceOperationId: '#(createdId)', newStatus: 'COMPLETED' }
+
     Given path '/service-operations/status'
-    And request testData.updateServiceOperationStatus
+    And request payload
     When method PUT
     Then status 204

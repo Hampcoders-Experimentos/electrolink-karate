@@ -1,7 +1,10 @@
 package photos;
 
-import io.karatelabs.junit6.Karate;
+import io.karatelabs.core.Runner;
+import io.karatelabs.core.SuiteResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runner for the Monitoring Report Photos module.
@@ -12,11 +15,16 @@ import org.junit.jupiter.api.Test;
 class PhotosRunner {
 
     /**
-     * Runs every scenario inside the {@code photos} package.
+     * Runs every scenario inside the {@code photos} package and fails
+     * the build if any scenario errors.
      */
     @Test
     void testPhotos() {
-        Karate.run("photos").relativeTo(getClass());
+        SuiteResult results = Runner
+                .path("classpath:photos")
+                .parallel(1);
+        assertEquals(0, results.getErrors().size(),
+                "Photos scenarios failed - see target/karate-reports/");
     }
 
 }

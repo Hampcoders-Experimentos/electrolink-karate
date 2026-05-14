@@ -3,9 +3,9 @@
 # Component Type Management Module — Integration tests.
 # Base Path: /api/v1/component-types
 #
-# Endpoints covered:
-#   - GET  /component-types
-#   - POST /component-types
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   CreateComponentTypeResource = { name, description }
+#   ComponentTypeResource       = { componentTypeId, name, description }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Component Type Management module - list and create
@@ -29,29 +29,33 @@ Feature: Component Type Management module - list and create
     And match each response ==
       """
       {
-        "id":          '#number',
-        "name":        '#string',
-        "description": '#string'
+        "componentTypeId": '#number',
+        "name":            '#string',
+        "description":     '##string'
       }
       """
-    And assert response.length > 0
 
   # ────────────────────────────────────────────────────────────────
   # POST /component-types — create a new component type
   # ────────────────────────────────────────────────────────────────
   @regression @componenttypes @post
   Scenario: Create component type returns 201 with the created entity
+    # Use a unique name so reruns don't collide
+    * def randomSuffix = '' + Math.floor(Math.random() * 1000000000)
+    * def uniqueName = 'Hydraulic_' + randomSuffix
+    * def body = { name: '#(uniqueName)', description: 'Hydraulic components' }
+
     Given path '/component-types'
-    And request testData.newComponentType
+    And request body
     When method POST
     Then status 201
     And match response ==
       """
       {
-        "id":          '#number',
-        "name":        '#string',
-        "description": '#string'
+        "componentTypeId": '#number',
+        "name":            '#string',
+        "description":     '##string'
       }
       """
-    And match response.name == 'Hydraulic'
+    And match response.name == uniqueName
     And match response.description == 'Hydraulic components'

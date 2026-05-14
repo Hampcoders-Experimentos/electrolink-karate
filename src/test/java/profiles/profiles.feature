@@ -3,13 +3,11 @@
 # Profile Management Module — Integration tests.
 # Base Path: /api/v1/profiles
 #
-# Endpoints covered:
-#   - POST   /profiles
-#   - GET    /profiles
-#   - GET    /profiles/{profileId}
-#   - PUT    /profiles/{profileId}
-#   - DELETE /profiles/{profileId}
-#   - GET    /profiles/search
+# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
+#   CreateProfileResource = { firstName, lastName, email, street,
+#                             role(HOMEOWNER|TECHNICIAN),
+#                             additionalInfoOrCertification }
+#   ProfileResource       = CreateProfileResource + { id, isVerified }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Profile Management module - full CRUD plus search
@@ -33,13 +31,14 @@ Feature: Profile Management module - full CRUD plus search
     And match response ==
       """
       {
-        "id":          '#number',
-        "firstName":   '#string',
-        "lastName":    '#string',
-        "email":       '#regex .+@.+',
-        "phoneNumber": '#string',
-        "role":        '#string',
-        "createdAt":   '#string'
+        "id":                            '#number',
+        "firstName":                     '#string',
+        "lastName":                      '#string',
+        "email":                         '#regex .+@.+',
+        "street":                        '#string',
+        "role":                          '#string',
+        "additionalInfoOrCertification": '#string',
+        "isVerified":                    '#boolean'
       }
       """
     And match response.firstName == 'John'
@@ -59,13 +58,14 @@ Feature: Profile Management module - full CRUD plus search
     And match each response ==
       """
       {
-        "id":          '#number',
-        "firstName":   '#string',
-        "lastName":    '#string',
-        "email":       '#regex .+@.+',
-        "phoneNumber": '#string',
-        "role":        '#string',
-        "createdAt":   '#string'
+        "id":                            '#number',
+        "firstName":                     '#string',
+        "lastName":                      '#string',
+        "email":                         '#regex .+@.+',
+        "street":                        '#string',
+        "role":                          '#string',
+        "additionalInfoOrCertification": '##string',
+        "isVerified":                    '#boolean'
       }
       """
 
@@ -74,42 +74,50 @@ Feature: Profile Management module - full CRUD plus search
   # ────────────────────────────────────────────────────────────────
   @smoke @profiles @get
   Scenario: Get profile by id returns the expected profile
-    Given path '/profiles', 1
+    # Create a profile so we have a guaranteed id to look up
+    Given path '/profiles'
+    And request testData.newProfile
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/profiles', createdId
     When method GET
     Then status 200
-    And match response.id == 1
-    And match response ==
-      """
-      {
-        "id":          '#number',
-        "firstName":   '#string',
-        "lastName":    '#string',
-        "email":       '#regex .+@.+',
-        "phoneNumber": '#string',
-        "role":        '#string',
-        "createdAt":   '#string'
-      }
-      """
+    And match response.id == createdId
+    And match response.firstName == testData.newProfile.firstName
 
   # ────────────────────────────────────────────────────────────────
   # PUT /profiles/{profileId} — update a profile
   # ────────────────────────────────────────────────────────────────
   @regression @profiles @put
   Scenario: Update profile returns 200 with the updated profile
-    Given path '/profiles', 1
+    Given path '/profiles'
+    And request testData.newProfile
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/profiles', createdId
     And request testData.updateProfile
     When method PUT
     Then status 200
     And match response.firstName == 'Jane'
     And match response.lastName == 'Smith'
-    And match response.phoneNumber == '+0987654321'
+    And match response.email == 'jane.smith@example.com'
 
   # ────────────────────────────────────────────────────────────────
   # DELETE /profiles/{profileId} — delete a profile
   # ────────────────────────────────────────────────────────────────
   @regression @profiles @delete
   Scenario: Delete profile returns 204
-    Given path '/profiles', 1
+    Given path '/profiles'
+    And request testData.newProfile
+    When method POST
+    Then status 201
+    * def createdId = response.id
+
+    Given path '/profiles', createdId
     When method DELETE
     Then status 204
 
@@ -139,7 +147,7 @@ Feature: Profile Management module - full CRUD plus search
   # GET /profiles/search?firstName=...&lastName=...
   # ────────────────────────────────────────────────────────────────
   @regression @profiles @get @search
-  Scenario: Search profiles by full name requires firstName and lastName
+  Scenario: Search profiles by full name returns matching profiles
     Given path '/profiles/search'
     And param firstName = 'John'
     And param lastName = 'Doe'
