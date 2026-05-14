@@ -1,0 +1,156 @@
+{
+  "comment": "Shared test payloads quoted verbatim from ELECTROLINK_API_ENDPOINTS.md. Loaded with: * def testData = read('classpath:common/test-data.json')",
+
+  "signUp": {
+    "email": "newuser@example.com",
+    "password": "password123",
+    "firstName": "Jane",
+    "lastName": "Smith"
+  },
+
+  "newComponent": {
+    "name": "New Breaker",
+    "componentTypeId": 1,
+    "description": "High capacity breaker"
+  },
+
+  "updateComponent": {
+    "name": "Updated Breaker",
+    "description": "Updated description"
+  },
+
+  "newComponentType": {
+    "name": "Hydraulic",
+    "description": "Hydraulic components"
+  },
+
+  "newProperty": {
+    "address": "456 Oak Ave",
+    "city": "Los Angeles",
+    "state": "CA",
+    "zipCode": "90001",
+    "ownerId": 1
+  },
+
+  "updateProperty": {
+    "address": "789 Elm St",
+    "city": "Chicago",
+    "state": "IL",
+    "zipCode": "60601"
+  },
+
+  "newStock": {
+    "componentId": 1,
+    "quantity": 10,
+    "alertThreshold": 5
+  },
+
+  "updateStock": {
+    "quantity": 20,
+    "alertThreshold": 10
+  },
+
+  "newProfile": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "phoneNumber": "+1234567890",
+    "role": "TECHNICIAN"
+  },
+
+  "updateProfile": {
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "phoneNumber": "+0987654321"
+  },
+
+  "newRequest": {
+    "clientId": "CLIENT001",
+    "description": "Electrical inspection needed",
+    "propertyId": "550e8400-e29b-41d4-a716-446655440000",
+    "preferredDate": "2024-02-15T10:00:00Z",
+    "priority": "HIGH"
+  },
+
+  "updateRequest": {
+    "description": "Updated description",
+    "priority": "MEDIUM"
+  },
+
+  "newService": {
+    "name": "New Service",
+    "description": "Service description",
+    "price": 200.00,
+    "duration": 90
+  },
+
+  "updateService": {
+    "name": "Updated Service",
+    "price": 250.00
+  },
+
+  "newSchedule": {
+    "technicianId": "TECH001",
+    "scheduleDate": "2024-02-15T10:00:00Z",
+    "requestIds": [1, 2, 3]
+  },
+
+  "updateSchedule": {
+    "scheduleDate": "2024-02-16T14:00:00Z",
+    "status": "COMPLETED"
+  },
+
+  "newRating": {
+    "score": 5,
+    "comment": "Excellent service!",
+    "technicianId": 1,
+    "requestId": 1
+  },
+
+  "updateRating": {
+    "id": 1,
+    "score": 4,
+    "comment": "Good service, but could be faster"
+  },
+
+  "newReport": {
+    "serviceOperationId": 1,
+    "summary": "Inspection completed",
+    "findings": "All systems operational",
+    "recommendations": "Regular maintenance recommended"
+  },
+
+  "newPhoto": {
+    "reportId": 1,
+    "photoUrl": "https://example.com/photos/photo1.jpg"
+  },
+
+  "newServiceOperation": {
+    "technicianId": 1,
+    "serviceId": 1,
+    "startTime": "2024-02-15T10:00:00Z",
+    "estimatedDuration": 120
+  },
+
+  "updateServiceOperationStatus": {
+    "serviceOperationId": 1,
+    "status": "COMPLETED",
+    "endTime": "2024-02-15T12:00:00Z"
+  },
+
+  "newSubscription": {
+    "userId": 1,
+    "planId": 1,
+    "startDate": "2024-02-01",
+    "paymentMethodId": "pm_123456"
+  },
+
+  "newPlan": {
+    "name": "Enterprise",
+    "description": "Enterprise subscription plan",
+    "price": 299.99,
+    "currency": "USD",
+    "billingCycle": "MONTHLY",
+    "features": ["Feature 1", "Feature 2", "Feature 3", "Feature 4", "Feature 5"]
+  }
+}

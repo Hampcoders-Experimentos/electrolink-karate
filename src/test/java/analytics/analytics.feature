@@ -1,0 +1,70 @@
+# analytics/analytics.feature
+# ─────────────────────────────────────────────────────────────────
+# Analytics Module — Integration tests.
+# Base Path: /api/v1/analytics
+#
+# Endpoints covered:
+#   - GET /analytics/homeowners/{ownerId}/consumption
+#   - GET /analytics/technicians/{technicianId}/performance
+#   - GET /analytics/technicians/{technicianId}/revenue
+# ─────────────────────────────────────────────────────────────────
+
+Feature: Analytics module - homeowner and technician metrics
+
+  Background:
+    * url baseUrl
+    * def auth = callonce read('classpath:common/auth-helper.feature@signIn')
+    * def authToken = auth.authToken
+    * header Authorization = 'Bearer ' + authToken
+
+  # ────────────────────────────────────────────────────────────────
+  # GET /analytics/homeowners/{ownerId}/consumption?months=12
+  # ────────────────────────────────────────────────────────────────
+  @smoke @analytics @get
+  Scenario: Get home owner consumption returns monthly consumption data
+    Given path '/analytics/homeowners', 1, 'consumption'
+    And param months = 12
+    When method GET
+    Then status 200
+    And match response == '#[] #object'
+    And match each response ==
+      """
+      {
+        "month":       '#string',
+        "year":        '#number',
+        "consumption": '#number',
+        "unit":        '#string'
+      }
+      """
+    And assert response.length > 0
+
+  # ────────────────────────────────────────────────────────────────
+  # GET /analytics/technicians/{technicianId}/performance
+  # ────────────────────────────────────────────────────────────────
+  @smoke @analytics @get
+  Scenario: Get technician performance returns metric entries
+    Given path '/analytics/technicians', 1, 'performance'
+    When method GET
+    Then status 200
+    And match response == '#[] #object'
+    And match each response contains { metric: '#string', value: '#number' }
+
+  # ────────────────────────────────────────────────────────────────
+  # GET /analytics/technicians/{technicianId}/revenue?months=6
+  # ────────────────────────────────────────────────────────────────
+  @smoke @analytics @get
+  Scenario: Get technician revenue returns monthly revenue data
+    Given path '/analytics/technicians', 1, 'revenue'
+    And param months = 6
+    When method GET
+    Then status 200
+    And match response == '#[] #object'
+    And match each response ==
+      """
+      {
+        "month":    '#string',
+        "year":     '#number',
+        "revenue":  '#number',
+        "currency": '#string'
+      }
+      """
