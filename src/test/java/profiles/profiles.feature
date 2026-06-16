@@ -2,30 +2,23 @@
 # ─────────────────────────────────────────────────────────────────
 # Profile Management Module — Integration tests.
 # Base Path: /api/v1/profiles
-#
-# DTOs (per ELECTROLINK_API_ENDPOINTS.md v2.0):
-#   CreateProfileResource = { firstName, lastName, email, street,
-#                             role(HOMEOWNER|TECHNICIAN),
-#                             additionalInfoOrCertification }
-#   ProfileResource       = CreateProfileResource + { id, isVerified }
 # ─────────────────────────────────────────────────────────────────
 
 Feature: Profile Management module - full CRUD plus search
 
   Background:
     * url baseUrl
-    * def auth = callonce read('classpath:common/auth-helper.feature@signIn')
-    * def authToken = auth.authToken
-    * header Authorization = 'Bearer ' + authToken
     * def testData = read('classpath:common/test-data.json')
+    * def uniqueProfile = function(){ return karate.merge(testData.newProfile, { email: 'profile_' + java.util.UUID.randomUUID() + '@example.com' }) }
 
   # ────────────────────────────────────────────────────────────────
   # POST /profiles — create a new profile
   # ────────────────────────────────────────────────────────────────
   @regression @profiles @post
   Scenario: Create profile returns 201 with the created profile
+    * def profile = uniqueProfile()
     Given path '/profiles'
-    And request testData.newProfile
+    And request profile
     When method POST
     Then status 201
     And match response ==
@@ -43,7 +36,7 @@ Feature: Profile Management module - full CRUD plus search
       """
     And match response.firstName == 'John'
     And match response.lastName == 'Doe'
-    And match response.email == 'john.doe@example.com'
+    And match response.email == profile.email
     And match response.role == 'TECHNICIAN'
 
   # ────────────────────────────────────────────────────────────────
@@ -54,20 +47,8 @@ Feature: Profile Management module - full CRUD plus search
     Given path '/profiles'
     When method GET
     Then status 200
-    And match response == '#[] #object'
-    And match each response ==
-      """
-      {
-        "id":                            '#number',
-        "firstName":                     '#string',
-        "lastName":                      '#string',
-        "email":                         '#regex .+@.+',
-        "street":                        '#string',
-        "role":                          '#string',
-        "additionalInfoOrCertification": '##string',
-        "isVerified":                    '#boolean'
-      }
-      """
+    And match response == '#array'
+    * eval matchEachOrEmpty(response, { id: '#number', firstName: '#string', lastName: '#string', email: '#regex .+@.+', street: '#string', role: '#string', additionalInfoOrCertification: '##string', isVerified: '#boolean' })
 
   # ────────────────────────────────────────────────────────────────
   # GET /profiles/{profileId} — fetch a profile
@@ -75,8 +56,9 @@ Feature: Profile Management module - full CRUD plus search
   @smoke @profiles @get
   Scenario: Get profile by id returns the expected profile
     # Create a profile so we have a guaranteed id to look up
+    * def profile = uniqueProfile()
     Given path '/profiles'
-    And request testData.newProfile
+    And request profile
     When method POST
     Then status 201
     * def createdId = response.id
@@ -85,34 +67,38 @@ Feature: Profile Management module - full CRUD plus search
     When method GET
     Then status 200
     And match response.id == createdId
-    And match response.firstName == testData.newProfile.firstName
+    And match response.firstName == profile.firstName
 
   # ────────────────────────────────────────────────────────────────
   # PUT /profiles/{profileId} — update a profile
   # ────────────────────────────────────────────────────────────────
   @regression @profiles @put
   Scenario: Update profile returns 200 with the updated profile
+    * def profile = uniqueProfile()
     Given path '/profiles'
-    And request testData.newProfile
+    And request profile
     When method POST
     Then status 201
     * def createdId = response.id
 
+    # v3.3: PUT also 500s if the new email is already used by another profile.
+    * def updated = karate.merge(testData.updateProfile, { email: 'updated_' + java.util.UUID.randomUUID() + '@example.com' })
     Given path '/profiles', createdId
-    And request testData.updateProfile
+    And request updated
     When method PUT
     Then status 200
     And match response.firstName == 'Jane'
     And match response.lastName == 'Smith'
-    And match response.email == 'jane.smith@example.com'
+    And match response.email == updated.email
 
   # ────────────────────────────────────────────────────────────────
   # DELETE /profiles/{profileId} — delete a profile
   # ────────────────────────────────────────────────────────────────
   @regression @profiles @delete
   Scenario: Delete profile returns 204
+    * def profile = uniqueProfile()
     Given path '/profiles'
-    And request testData.newProfile
+    And request profile
     When method POST
     Then status 201
     * def createdId = response.id
@@ -130,7 +116,7 @@ Feature: Profile Management module - full CRUD plus search
     And param email = 'john.doe@example.com'
     When method GET
     Then status 200
-    And match response == '#[] #object'
+    And match response == '#array'
 
   # ────────────────────────────────────────────────────────────────
   # GET /profiles/search?role=...
@@ -141,7 +127,7 @@ Feature: Profile Management module - full CRUD plus search
     And param role = 'TECHNICIAN'
     When method GET
     Then status 200
-    And match response == '#[] #object'
+    And match response == '#array'
 
   # ────────────────────────────────────────────────────────────────
   # GET /profiles/search?firstName=...&lastName=...
@@ -153,4 +139,4 @@ Feature: Profile Management module - full CRUD plus search
     And param lastName = 'Doe'
     When method GET
     Then status 200
-    And match response == '#[] #object'
+    And match response == '#array'

@@ -1,5 +1,5 @@
 {
-  "comment": "Shared test payloads aligned with ELECTROLINK_API_ENDPOINTS.md v2.0 (real DTO shapes from src/main/java/com/hampcoders/electrolink/**/interfaces/rest/**). Loaded with: * def testData = read('classpath:common/test-data.json')",
+  "comment": "Shared test payloads loaded with: * def testData = read('classpath:common/test-data.json')",
 
   "signUp": {
     "username": "newuser@example.com",
@@ -37,7 +37,7 @@
   },
 
   "newProperty": {
-    "ownerId": "550e8400-e29b-41d4-a716-446655440000",
+    "ownerId": "1",
     "address": {
       "street": "Av. Javier Prado",
       "number": "1234",
@@ -96,7 +96,7 @@
   },
 
   "newRequest": {
-    "clientId": "CLIENT001",
+    "clientId": "1",
     "technicianId": "TECH001",
     "propertyId": "550e8400-e29b-41d4-a716-446655440000",
     "serviceId": "SVC001",
@@ -115,7 +115,7 @@
   },
 
   "updateRequest": {
-    "clientId": "CLIENT001",
+    "clientId": "1",
     "technicianId": "TECH002",
     "propertyId": "550e8400-e29b-41d4-a716-446655440000",
     "serviceId": "SVC001",

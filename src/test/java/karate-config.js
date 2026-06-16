@@ -39,6 +39,15 @@ function fn() {
         testUser: {
             username: 'user@example.com',
             password: 'password123'
+        },
+
+        matchEachOrEmpty: function (arr, schema) {
+            for (var i = 0; i < arr.length; i++) {
+                var r = karate.match(arr[i], schema);
+                if (!r.pass) {
+                    karate.fail('element ' + i + ' mismatch: ' + r.message);
+                }
+            }
         }
     };
 

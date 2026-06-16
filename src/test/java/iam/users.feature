@@ -1,10 +1,18 @@
-# analytics/analytics.feature
+# users/users.feature
 # ─────────────────────────────────────────────────────────────────
-# Analytics Module — Integration tests.
-# Base Path: /api/v1/analytics
+# User Management Module — Integration tests.
+# Base Path: /api/v1/users
+#
+# Endpoints covered:
+#   - GET /users
+#   - GET /users/{userId}
+#
+# Real API contract (verified against the running backend):
+#   • Each user is { id, username, roles } — no email, firstName,
+#     lastName or createdAt fields are returned.
 # ─────────────────────────────────────────────────────────────────
 
-Feature: Analytics module - homeowner and technician metrics
+Feature: User Management module - read endpoints
 
   Background:
     * url baseUrl
@@ -12,36 +20,47 @@ Feature: Analytics module - homeowner and technician metrics
     * configure headers = { 'Content-Type': 'application/json', 'Accept': 'application/json', Authorization: 'Bearer ' + auth.authToken }
 
   # ────────────────────────────────────────────────────────────────
-  # GET /analytics/homeowners/{ownerId}/consumption?months=12
+  # GET /users — list every user
   # ────────────────────────────────────────────────────────────────
-  @smoke @analytics @get
-  Scenario: Get home owner consumption returns monthly consumption data
-    Given path '/analytics/homeowners', 1, 'consumption'
-    And param months = 12
+  @smoke @users @get
+  Scenario: Get all users returns an array of user objects
+    Given path '/users'
     When method GET
     Then status 200
     And match response == '#array'
-    * eval matchEachOrEmpty(response, { ownerId: '#number', month: '#number', year: '#number', energyConsumed: '#number', amountPaid: '#number', serviceRequestsCount: '#number' })
+    And match each response ==
+      """
+      {
+        "id":       '#number',
+        "username": '#string',
+        "roles":    '#array'
+      }
+      """
+    And assert response.length > 0
 
   # ────────────────────────────────────────────────────────────────
-  # GET /analytics/technicians/{technicianId}/performance
+  # GET /users/{userId} — fetch a specific user
   # ────────────────────────────────────────────────────────────────
-  @smoke @analytics @get
-  Scenario: Get technician performance returns performance metrics
-    Given path '/analytics/technicians', 1, 'performance'
+  @smoke @users @get
+  Scenario: Get user by id returns the expected user payload
+    Given path '/users', 1
     When method GET
     Then status 200
-    And match response == '#array'
-    * eval matchEachOrEmpty(response, { technicianId: '#number', totalServicesCompleted: '#number', averageRating: '#number', averageCompletionTimeHours: '#number', pendingServices: '#number' })
+    And match response ==
+      """
+      {
+        "id":       '#number',
+        "username": '#string',
+        "roles":    '#array'
+      }
+      """
+    And match response.id == 1
 
   # ────────────────────────────────────────────────────────────────
-  # GET /analytics/technicians/{technicianId}/revenue?months=6
+  # GET /users/{userId} — non-existent id returns 404
   # ────────────────────────────────────────────────────────────────
-  @smoke @analytics @get
-  Scenario: Get technician revenue returns revenue data
-    Given path '/analytics/technicians', 1, 'revenue'
-    And param months = 6
+  @regression @users @get @negative
+  Scenario: Get user by unknown id returns 404
+    Given path '/users', 999999
     When method GET
-    Then status 200
-    And match response == '#array'
-    * eval matchEachOrEmpty(response, { technicianId: '#number', period: '#string', totalRevenue: '#number', servicesCount: '#number', averageRevenuePerService: '#number' })
+    Then status 404
