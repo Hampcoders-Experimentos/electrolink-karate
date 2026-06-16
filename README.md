@@ -1,204 +1,149 @@
-# Electrolink Backend API - Karate v2 Integration Tests
+# Karate Testing
 
-End-to-end integration test suite for the **Electrolink Service Delivery Platform**
-backend, authored against **Karate v2** with **Java 21+** and **Maven**.
+Integration test suite for the Electrolink backend API, built with [Karate](https://github.com/karatelabs/karate) **v2.0.10**, Maven, JUnit 6, and Java 26.
 
-Every scenario is derived directly from
-[`ELECTROLINK_API_ENDPOINTS.md`](../../SpringBoot/electrolink-backend-api/ELECTROLINK_API_ENDPOINTS.md)
-— no endpoints, payloads or response shapes are invented. The suite covers 100% of
-the 18 documented modules.
+The project is organized as a set of API feature suites grouped by bounded context:
 
----
+- `iam`
+- `profiles`
+- `analytics`
+- `assets`
+- `sdp`
+- `monitoring`
+- `subscription`
 
-## Quick Start
-
-```bash
-# 1. Start the Electrolink backend on http://localhost:8081 (default for this suite)
-# 2. From the project root, run the full suite
-mvn test
-
-# 3. Open the HTML report
-start target/karate-reports/karate-summary.html        # Windows
-# open  target/karate-reports/karate-summary.html      # macOS / Linux
-```
-
----
+Shared helpers live under `src/test/java/common`.
 
 ## Prerequisites
 
-| Tool      | Minimum version | Notes                                                   |
-|-----------|-----------------|---------------------------------------------------------|
-| Java JDK  | **21**          | Karate v2 requires Java 21+ for Virtual Threads         |
-| Maven     | 3.8+            |                                                         |
-| Backend   | Running         | Electrolink API reachable at `http://localhost:8081/api/v1` |
+- Java 26
+- Maven 3.9+ recommended
+- A running backend API compatible with the configured base URLs
 
-```powershell
-java -version   # 21 or higher (Java 26 also works)
-mvn -version
+## Project layout
+
+```text
+src/test/java/
+  karate-config.js        # Global Karate configuration
+  TestRunner.java         # Master runner for all suites
+  common/                 # Shared helpers and test data
+  iam/                    # IAM features and runner
+  profiles/               # Profiles features and runner
+  analytics/              # Analytics features and runner
+  assets/                 # Assets features and runner
+  sdp/                    # SDP features and runner
+  monitoring/             # Monitoring features and runner
+  subscription/           # Subscription features and runner
 ```
 
----
+> Karate feature files are stored under `src/test/java` so they are available on the test classpath.
 
-## Project Structure
+## Running the tests
 
-```
-karate-demo/
-├── pom.xml                                            # Maven configuration
-└── src/test/java/
-    ├── karate-config.js                               # Global config (baseUrl, env, headers)
-    ├── logback-test.xml                               # Logging configuration
-    ├── TestRunner.java                                # Master runner (every module in parallel)
-    │
-    ├── common/                                        # Shared helpers
-    │   ├── auth-helper.feature                        #   @signIn callable scenario (JWT cache)
-    │   └── test-data.json                             #   Request payloads quoted from the spec
-    │
-    ├── authentication/   authentication.feature  +  AuthenticationRunner.java
-    ├── users/            users.feature           +  UsersRunner.java
-    ├── roles/            roles.feature           +  RolesRunner.java
-    ├── components/       components.feature      +  ComponentsRunner.java
-    ├── componenttypes/   component-types.feature +  ComponentTypesRunner.java
-    ├── properties/       properties.feature      +  PropertiesRunner.java
-    ├── technicianinventories/
-    │                     technician-inventories.feature + TechnicianInventoriesRunner.java
-    ├── profiles/         profiles.feature        +  ProfilesRunner.java
-    ├── analytics/        analytics.feature       +  AnalyticsRunner.java
-    ├── requests/         requests.feature        +  RequestsRunner.java
-    ├── services/         services.feature        +  ServicesRunner.java
-    ├── schedules/        schedules.feature       +  SchedulesRunner.java
-    ├── ratings/          ratings.feature         +  RatingsRunner.java
-    ├── reports/          reports.feature         +  ReportsRunner.java
-    ├── photos/           photos.feature          +  PhotosRunner.java
-    ├── serviceoperations/
-    │                     service-operations.feature + ServiceOperationsRunner.java
-    ├── subscriptions/    subscriptions.feature   +  SubscriptionsRunner.java
-    └── plans/            plans.feature           +  PlansRunner.java
-```
-
----
-
-## Endpoint Coverage
-
-| Module                          | Base path                          | Scenarios |
-|---------------------------------|------------------------------------|-----------|
-| Authentication                  | `/api/v1/authentication`           | 2         |
-| User Management                 | `/api/v1/users`                    | 3         |
-| Role Management                 | `/api/v1/roles`                    | 1         |
-| Component Management            | `/api/v1/components`               | 6         |
-| Component Type Management       | `/api/v1/component-types`          | 2         |
-| Property Management             | `/api/v1/properties`               | 6         |
-| Technician Inventory            | `/api/v1/technician-inventories`   | 7         |
-| Profile Management              | `/api/v1/profiles`                 | 8         |
-| Analytics                       | `/api/v1/analytics`                | 3         |
-| SDP - Requests                  | `/api/v1/requests`                 | 5         |
-| SDP - Services                  | `/api/v1/services`                 | 5         |
-| SDP - Schedules                 | `/api/v1` (technicians, schedules) | 4         |
-| Monitoring - Ratings            | `/api/v1/ratings`                  | 8         |
-| Monitoring - Reports            | `/api/v1/reports`                  | 5         |
-| Monitoring - Report Photos      | `/api/v1/photos`                   | 1         |
-| Monitoring - Service Operations | `/api/v1/service-operations`       | 5         |
-| Subscription Management         | `/api/v1/subscriptions`            | 5         |
-| Plan Management                 | `/api/v1/plans`                    | 3         |
-
----
-
-## Running Tests
+Run the full suite:
 
 ```bash
-# Full suite (parallel across all 18 modules)
 mvn test
-
-# Master runner only
-mvn test -Dtest=TestRunner
-
-# A single module
-mvn test -Dtest=AuthenticationRunner
-mvn test -Dtest=ComponentsRunner
-mvn test -Dtest=RatingsRunner
-
-# By tag
-mvn test -Dkarate.options="--tags @smoke"
-mvn test -Dkarate.options="--tags @regression"
-mvn test -Dkarate.options="--tags @post"
-
-# By environment
-mvn test -Dkarate.env=dev          # default — http://localhost:8081/api/v1
-mvn test -Dkarate.env=staging      # http://localhost:8081/api/v1
-mvn test -Dkarate.env=prod         # https://api.electrolink.com/api/v1
-
-# Combine module + tag + environment
-mvn test -Dtest=ProfilesRunner -Dkarate.env=staging -Dkarate.options="--tags @smoke"
 ```
 
----
+Run with a different Karate environment:
 
-## Tags
-
-| Tag               | Description                                                |
-|-------------------|------------------------------------------------------------|
-| `@smoke`          | Fast, critical scenarios — green path                       |
-| `@regression`     | Full regression coverage                                   |
-| `@negative`       | Documented error responses (404, 400, 401)                 |
-| `@get` `@post` `@put` `@delete` | Filter by HTTP verb                          |
-| `@<module>`       | e.g. `@users`, `@components`, `@ratings`, `@subscriptions` |
-| `@ignore`         | Callable helpers — never executed directly                 |
-
----
-
-## Authentication Flow
-
-Every authenticated feature shares a single JWT via `callonce`:
-
-```gherkin
-Background:
-  * url baseUrl
-  * def auth = callonce read('classpath:common/auth-helper.feature@signIn')
-  * def authToken = auth.authToken
-  * header Authorization = 'Bearer ' + authToken
+```bash
+mvn test -Dkarate.env=staging
 ```
 
-The seeded credentials (`user@example.com` / `password123`) and the helper's
-`POST /authentication/sign-in` call come from `karate-config.js → testUser` and
-`common/auth-helper.feature@signIn` respectively, so individual features never hard-code
-auth details.
+```bash
+mvn test -Dkarate.env=prod
+```
 
----
+Run a specific runner:
+
+```bash
+mvn -Dtest=TestRunner test
+```
+
+You can also run an individual module runner by targeting its `*Runner` class with Surefire's `-Dtest` filter.
 
 ## Configuration
 
-`src/test/java/karate-config.js` exposes:
+Global test configuration is defined in `src/test/java/karate-config.js`.
 
-| Variable          | Default                              | Purpose                              |
-|-------------------|--------------------------------------|--------------------------------------|
-| `baseUrl`         | `http://localhost:8081/api/v1`       | Resolved per `karate.env`            |
-| `connectTimeout`  | 30 000 ms                            | HTTP connect timeout                 |
-| `readTimeout`     | 30 000 ms                            | HTTP read timeout                    |
-| `commonHeaders`   | `Content-Type` / `Accept: application/json` | Applied to every request       |
-| `testUser`        | `{ email, password }`                | Consumed by `auth-helper.feature`    |
+Default values:
 
-Override the environment at runtime: `mvn test -Dkarate.env=prod`.
+- `karate.env`: `dev`
+- `baseUrl`: `http://localhost:8081/api/v1`
+- `connectTimeout`: `30000`
+- `readTimeout`: `30000`
 
----
+Environment-specific behavior:
+
+- `dev`: default configuration
+- `staging`: same local API base URL, explicitly logged
+- `prod`: uses `https://api.electrolink.com/api/v1` and a longer connection timeout
+
+Global headers are also configured there:
+
+- `Content-Type: application/json`
+- `Accept: application/json`
+
+The shared test user is defined as:
+
+- `username: user@example.com`
+- `password: password123`
+
+## Suite organization
+
+The master runner (`src/test/java/TestRunner.java`) executes all feature files under these classpath roots:
+
+- `classpath:iam`
+- `classpath:profiles`
+- `classpath:analytics`
+- `classpath:assets`
+- `classpath:sdp`
+- `classpath:monitoring`
+- `classpath:subscription`
+
+Each bounded context also has its own runner, for example:
+
+- `src/test/java/iam/IamRunner.java`
+- `src/test/java/profiles/ProfilesRunner.java`
+- `src/test/java/analytics/AnalyticsRunner.java`
+
+## Shared helpers
+
+Reusable test helpers are located in `src/test/java/common`:
+
+- `auth-helper.feature` — idempotent sign-up/sign-in helper for retrieving a JWT token
+- `seed-helper.feature` — helper for creating test fixtures
+- `test-data.json` — shared payloads and test data
+
+Example usage from a feature file:
+
+```gherkin
+* def auth = callonce read('classpath:common/auth-helper.feature@signIn')
+* def authToken = auth.authToken
+```
+
+## Test execution notes
+
+- JUnit parallel execution is disabled via `src/test/resources/junit-platform.properties`.
+- The Maven Surefire plugin is configured to include `*Runner.java` and `*Test.java` classes.
+- Test reports are generated under `target/karate-reports/` and `target/surefire-reports/`.
 
 ## Reports
 
-After `mvn test`:
+After a run, open:
 
-- `target/karate-reports/karate-summary.html` — interactive HTML summary
-- `target/karate-reports/*.html` — per-feature detailed report
-- `target/karate.log` — full execution log
-- `target/surefire-reports/` — JUnit XML for CI/CD
+- `target/karate-reports/index.html`
+- `target/karate-reports/karate-summary.html`
+- `target/karate-reports/karate-timeline.html`
 
----
+## Troubleshooting
 
-## Karate Features Demonstrated
+If the suite fails early, verify that:
 
-- GET / POST / PUT / DELETE against every documented Electrolink endpoint
-- Schema validation with fuzzy matchers (`#string`, `#number`, `#uuid`, `#array`, `#regex .+@.+`)
-- Full-object schema assertions via heredoc `match response == """ { ... } """`
-- Shared authentication helper through `callonce` (token cached per feature)
-- Externalized request payloads in `common/test-data.json`
-- Path params, query params and custom headers
-- Per-environment configuration via `karate-config.js`
-- Parallel execution from a single master `TestRunner`
-- Tag-based filtering for smoke / regression / negative subsets
+1. The backend API is running and reachable at the configured `baseUrl`.
+2. The environment passed to Maven matches the backend you want to test.
+3. The test user can be created or already exists in the backend.
+
+If you need to inspect a failure in detail, check the generated HTML reports and the Maven console output.
